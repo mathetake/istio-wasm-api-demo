@@ -40,7 +40,7 @@ type httpHeaders struct {
 
 // Additional headers supposed to be injected to response headers.
 var additionalHeaders = map[string]string{
-	"who-am-i":    "wasm-extensino",
+	"who-am-i":    "wasm-extension",
 	"injected-by": "istio-api!",
 }
 
