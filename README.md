@@ -81,14 +81,12 @@ access-control-allow-origin: *
 access-control-allow-credentials: true
 x-envoy-upstream-service-time: 1
 x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
-
-pod "curl" deleted
 ```
 
 ## 2. Build and publish Wasm extension on OCI registry
 
 
-Dependency:: TinyGO, and Docker CLI
+Dependency:: TinyGo, and Docker CLI
 
 
 1. Compile the code to Wasm binary.
@@ -148,6 +146,28 @@ x-envoy-upstream-service-time: 1
 who-am-i: wasm-extension # <------------------- injected by Wasm extension!!
 injected-by: istio-api!  # <------------------- injected by Wasm extension!!
 x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
+```
 
-pod "curl" deleted
+3. Un-deploy the Wasm plugin from Envoy proxy
+
+```
+$ kubectl delete wasmplugin header-injection 
+```
+
+
+4. Verify the header injection plugin is un-deployed.
+
+Now that the Wasm plugin is un-deployed so you see the additional headers are no longer injected.
+
+```
+$ kubectl run curl --restart=OnFailure -l sidecar.istio.io/inject=false --image=curlimages/curl -it --rm -- /bin/sh -c 'curl --head http://httpbin.default.svc.cluster.local:8000/headers'
+HTTP/1.1 200 OK
+server: istio-envoy
+date: Mon, 15 Nov 2021 07:33:17 GMT
+content-type: application/json
+content-length: 259
+access-control-allow-origin: *
+access-control-allow-credentials: true
+x-envoy-upstream-service-time: 1
+x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
 ```
