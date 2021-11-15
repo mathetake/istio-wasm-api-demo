@@ -71,6 +71,38 @@ spec:
 
 ```
 $ kubectl run curl --restart=OnFailure -l sidecar.istio.io/inject=false --image=curlimages/curl -it --rm -- /bin/sh -c 'curl -v http://httpbin.default.svc.cluster.local:8000/headers'
+
+*   Trying 10.96.158.134:8000...
+* Connected to httpbin.default.svc.cluster.local (10.96.158.134) port 8000 (#0)
+> GET /headers HTTP/1.1
+> Host: httpbin.default.svc.cluster.local:8000
+> User-Agent: curl/7.80.0-DEV
+> Accept: */*
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< server: istio-envoy
+< date: Mon, 15 Nov 2021 05:25:51 GMT
+< content-type: application/json
+< content-length: 259
+< access-control-allow-origin: *
+< access-control-allow-credentials: true
+< x-envoy-upstream-service-time: 1
+< x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
+<
+{
+  "headers": {
+    "Accept": "*/*",
+    "Host": "httpbin.default.svc.cluster.local:8000",
+    "User-Agent": "curl/7.80.0-DEV",
+    "X-B3-Sampled": "1",
+    "X-B3-Spanid": "673a180f34d0082f",
+    "X-B3-Traceid": "8d58033071c3d249673a180f34d0082f"
+  }
+}
+* Connection #0 to host httpbin.default.svc.cluster.local left intact
+pod "curl" deleted
+
 ```
 
 ## 2. Build and publish Wasm extension on OCI registry
