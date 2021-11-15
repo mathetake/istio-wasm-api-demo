@@ -2,4 +2,4 @@
 # https://github.com/solo-io/wasm/blob/master/spec/spec-compat.md
 FROM scratch
 
-COPY main.go ./plugin.wasm
+COPY main.wasm ./plugin.wasm

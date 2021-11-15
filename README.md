@@ -70,39 +70,19 @@ spec:
 5. Verify the demo app is running!
 
 ```
-$ kubectl run curl --restart=OnFailure -l sidecar.istio.io/inject=false --image=curlimages/curl -it --rm -- /bin/sh -c 'curl -v http://httpbin.default.svc.cluster.local:8000/headers'
+$ kubectl run curl --restart=OnFailure -l sidecar.istio.io/inject=false --image=curlimages/curl -it --rm -- /bin/sh -c 'curl --head http://httpbin.default.svc.cluster.local:8000/headers'
 
-*   Trying 10.96.158.134:8000...
-* Connected to httpbin.default.svc.cluster.local (10.96.158.134) port 8000 (#0)
-> GET /headers HTTP/1.1
-> Host: httpbin.default.svc.cluster.local:8000
-> User-Agent: curl/7.80.0-DEV
-> Accept: */*
->
-* Mark bundle as not supporting multiuse
-< HTTP/1.1 200 OK
-< server: istio-envoy
-< date: Mon, 15 Nov 2021 05:25:51 GMT
-< content-type: application/json
-< content-length: 259
-< access-control-allow-origin: *
-< access-control-allow-credentials: true
-< x-envoy-upstream-service-time: 1
-< x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
-<
-{
-  "headers": {
-    "Accept": "*/*",
-    "Host": "httpbin.default.svc.cluster.local:8000",
-    "User-Agent": "curl/7.80.0-DEV",
-    "X-B3-Sampled": "1",
-    "X-B3-Spanid": "673a180f34d0082f",
-    "X-B3-Traceid": "8d58033071c3d249673a180f34d0082f"
-  }
-}
-* Connection #0 to host httpbin.default.svc.cluster.local left intact
+HTTP/1.1 200 OK
+server: istio-envoy
+date: Mon, 15 Nov 2021 05:54:45 GMT
+content-type: application/json
+content-length: 259
+access-control-allow-origin: *
+access-control-allow-credentials: true
+x-envoy-upstream-service-time: 1
+x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
+
 pod "curl" deleted
-
 ```
 
 ## 2. Build and publish Wasm extension on OCI registry
@@ -123,12 +103,51 @@ $ tinygo build -o main.wasm -scheduler=none -target=wasi main.go
 # Note that replace ${WASM_EXTENSION_REGISTRY} with your OCI repo.
 # Here I push to GitHub Container Registry.
 $ export WASM_EXTENSION_REGISTRY=ghcr.io/mathetake/wasm-extension-demo
-$ docker build -t ${WASM_EXTENSION_REGISTRY} .
+$ docker build -t ${WASM_EXTENSION_REGISTRY}:v1 .
 ```
 
 3. Publish the docker image to your OCI registry
 
 ```
 # Make sure you already logged in to the registory.
-docker push ${WASM_EXTENSION_REGISTRY}
+docker push ${WASM_EXTENSION_REGISTRY}:v1
+```
+
+
+## 3. Deploy the Wasm extension via Istio Wasm Plugin API
+
+1. Apply the new Wasm Plugin API pointing to the Docker image.
+
+```
+$ echo 'apiVersion: extensions.istio.io/v1alpha1
+kind: WasmPlugin
+metadata:
+  name: header-injection
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: httpbin
+  url: oci://ghcr.io/mathetake/wasm-extension-demo:v1
+' | kubectl apply -f -
+```
+
+2. Check if the header injection works!
+
+```dotnetcli
+$ kubectl run curl --restart=OnFailure -l sidecar.istio.io/inject=false --image=curlimages/curl -it --rm -- /bin/sh -c 'curl --head http://httpbin.default.svc.cluster.local:8000/headers'
+
+HTTP/1.1 200 OK
+server: istio-envoy
+date: Mon, 15 Nov 2021 05:55:19 GMT
+content-type: application/json
+content-length: 259
+access-control-allow-origin: *
+access-control-allow-credentials: true
+x-envoy-upstream-service-time: 1
+who-am-i: wasm-extension # <------------------- injected by Wasm extension!!
+injected-by: istio-api!  # <------------------- injected by Wasm extension!!
+x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
+
+pod "curl" deleted
 ```
