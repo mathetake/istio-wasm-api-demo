@@ -97,5 +97,6 @@ $ docker build -t ${WASM_EXTENSION_REGISTRY} .
 3. Publish the docker image to your OCI registry
 
 ```
+# Make sure you already logged in to the registory.
 docker push ${WASM_EXTENSION_REGISTRY}
 ```
