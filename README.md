@@ -1,6 +1,6 @@
 # istio-wasm-api-demo
 
-## Setup the latest Istio
+## 1. Setup the latest Istio
 
 0. Setup k8s cluster: e.g. `kind create cluster --name test`
 
@@ -11,18 +11,18 @@ E.g. https://github.com/istio/istio/releases/tag/1.12.0-beta.2
 2. Install Istio demo profile:
 
 ```
-/path/to/istio-1.12.0-beta.2/bin/istioctl install --set profile=demo
+$ /path/to/istio-1.12.0-beta.2/bin/istioctl install --set profile=demo
 ```
 
 3. Enable sidecar injection in default namespace
 
 ```
-kubectl label namespace default istio-injection=enabled
+$ kubectl label namespace default istio-injection=enabled
 ```
 
 4. Deploy the demo app/
 ```
-echo 'apiVersion: v1
+$ echo 'apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: httpbin
@@ -65,4 +65,37 @@ spec:
         name: httpbin
         ports:
         - containerPort: 80' | kubectl apply -f -
+```
+
+5. Verify the demo app is running!
+
+```
+$ kubectl run curl --restart=OnFailure -l sidecar.istio.io/inject=false --image=curlimages/curl -it --rm -- /bin/sh -c 'curl -v http://httpbin.default.svc.cluster.local:8000/headers'
+```
+
+## 2. Build and publish Wasm extension on OCI registry
+
+
+Dependency:: TinyGO, and Docker CLI
+
+
+1. Compile the code to Wasm binary.
+
+```
+$ tinygo build -o main.wasm -scheduler=none -target=wasi main.go
+```
+
+2. Build docker image which is compliant with Wasm OCI image spec (https://github.com/solo-io/wasm/tree/master/spec)
+
+```
+# Note that replace ${WASM_EXTENSION_REGISTRY} with your OCI repo.
+# Here I push to GitHub Container Registry.
+$ export WASM_EXTENSION_REGISTRY=ghcr.io/mathetake/wasm-extension-demo
+$ docker build -t ${WASM_EXTENSION_REGISTRY} .
+```
+
+3. Publish the docker image to your OCI registry
+
+```
+docker push ${WASM_EXTENSION_REGISTRY}
 ```
