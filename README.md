@@ -83,7 +83,7 @@ x-envoy-upstream-service-time: 1
 x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
 ```
 
-## 2. Build and publish Wasm extension on OCI registry
+## 2. Build and publish Wasm plugin on OCI registry
 
 
 Dependency:: TinyGo, and Docker CLI
@@ -98,26 +98,26 @@ $ tinygo build -o main.wasm -scheduler=none -target=wasi main.go
 2. Build docker image which is compliant with Wasm OCI image spec (https://github.com/solo-io/wasm/tree/master/spec)
 
 ```
-# Note that replace ${WASM_EXTENSION_REGISTRY} with your OCI repo.
+# Note that replace ${WASM_PLUGIN_REGISTRY} with your OCI repo.
 # Here I push to GitHub Container Registry.
-$ export WASM_EXTENSION_REGISTRY=ghcr.io/mathetake/wasm-extension-demo
-$ docker build -t ${WASM_EXTENSION_REGISTRY}:v1 .
+$ export WASM_PLUGIN_REGISTRY=ghcr.io/mathetake/wasm-plugin-demo
+$ docker build -t ${WASM_PLUGIN_REGISTRY}:v1 .
 ```
 
 3. Publish the docker image to your OCI registry
 
 ```
 # Make sure you already logged in to the registory.
-docker push ${WASM_EXTENSION_REGISTRY}:v1
+docker push ${WASM_PLUGIN_REGISTRY}:v1
 ```
 
 
-## 3. Deploy the Wasm extension via Istio Wasm Plugin API
+## 3. Deploy the Wasm plugin via Istio Wasm Plugin API
 
 1. Apply the new Wasm Plugin API pointing to the Docker image.
 
 ```
-$ echo 'apiVersion: extensions.istio.io/v1alpha1
+$ echo 'apiVersion: plugins.istio.io/v1alpha1
 kind: WasmPlugin
 metadata:
   name: header-injection
@@ -126,7 +126,7 @@ spec:
   selector:
     matchLabels:
       app: httpbin
-  url: oci://ghcr.io/mathetake/wasm-extension-demo:v1
+  url: oci://ghcr.io/mathetake/wasm-plugin-demo:v1
 ' | kubectl apply -f -
 ```
 
@@ -143,8 +143,8 @@ content-length: 259
 access-control-allow-origin: *
 access-control-allow-credentials: true
 x-envoy-upstream-service-time: 1
-who-am-i: wasm-extension # <------------------- injected by Wasm extension!!
-injected-by: istio-api!  # <------------------- injected by Wasm extension!!
+who-am-i: wasm-plugin # <------------------- injected by Wasm plugin!!
+injected-by: istio-api!  # <------------------- injected by Wasm plugin!!
 x-envoy-decorator-operation: httpbin.default.svc.cluster.local:8000/*
 ```
 
