@@ -7,4 +7,4 @@ spec:
   selector:
     matchLabels:
       app: httpbin
-  url: oci://ghcr.io/tetratelabs/wasm-rate-limiting:istio-weekly2
+  url: oci://ghcr.io/tetratelabs/wasm-demo-http-headers:v2

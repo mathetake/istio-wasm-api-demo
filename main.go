@@ -53,7 +53,7 @@ func (ctx *httpHeaders) OnHttpRequestHeaders(numHeaders int, endOfStream bool) t
 
 // Additional headers supposed to be injected to response headers.
 var additionalResponseHeaders = map[string]string{
-	"who-am-i": "@peter",
+	"istio-weekly": "#14",
 }
 
 func (ctx *httpHeaders) OnHttpResponseHeaders(numHeaders int, endOfStream bool) types.Action {

@@ -117,7 +117,7 @@ docker push ${WASM_PLUGIN_REGISTRY}:v1
 1. Apply the new Wasm Plugin API pointing to the Docker image.
 
 ```
-$ echo 'apiVersion: plugins.istio.io/v1alpha1
+$ echo 'apiVersion: extensions.istio.io/v1alpha1
 kind: WasmPlugin
 metadata:
   name: header-injection
