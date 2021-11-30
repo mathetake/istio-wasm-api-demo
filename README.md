@@ -4,14 +4,12 @@
 
 0. Setup k8s cluster: e.g. `kind create cluster --name test`
 
-1. Download the latest Istioctl from the GitHub releases (as the Wasm API is not officially released yet):
-
-E.g. https://github.com/istio/istio/releases/tag/1.12.0-beta.2
+1. Download the latest Istioctl.
 
 2. Install Istio demo profile:
 
 ```
-$ /path/to/istio-1.12.0-beta.2/bin/istioctl install --set profile=demo
+$ istioctl install --set profile=demo
 ```
 
 3. Enable sidecar injection in default namespace
